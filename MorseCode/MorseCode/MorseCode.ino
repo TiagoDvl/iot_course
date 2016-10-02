@@ -22,13 +22,13 @@ class Morse {
         delay(sequence[i]);
         Serial.print("HIGH");
         Serial.print(i);
-        Serial.print(" ");
+        Serial.println(" ");
       } else {
         digitalWrite(LED_BUILTIN, LOW);    // turn the LED off by making the voltage LOW
         delay(sequence[i]);
         Serial.print("LOW");
         Serial.print(i);
-        Serial.print(" ");
+        Serial.println(" ");
       }
     }
   }
@@ -171,7 +171,7 @@ class Morse {
     sequence[2] = UNIT_DOT;
     
 
-    makeItShine();
+    makeItShine(3);
   }
 
   virtual void getO() {
@@ -210,7 +210,7 @@ class Morse {
 
   virtual void getR() {
     sequence[0] = UNIT_DOT;
-    sequence[1] = UNIT_WITHIN_LETTER
+    sequence[1] = UNIT_WITHIN_LETTERS;
     sequence[2] = UNIT_DASH;
     sequence[3] = UNIT_WITHIN_LETTERS;
     sequence[4] = UNIT_DOT;
@@ -253,7 +253,7 @@ class Morse {
     sequence[5] = UNIT_WITHIN_LETTERS;
     sequence[6] = UNIT_DASH;
     
-    makeItShine();
+    makeItShine(7);
   }
 
   virtual void getW() {
@@ -301,6 +301,20 @@ class Morse {
 
     makeItShine(7);
   }
+
+  virtual void getSpaceBetweenWords() {
+    sequence[0] = UNITS_BETWEEN_WORDS;
+
+    digitalWrite(LED_BUILTIN, LOW);    // turn the LED off by making the voltage LOW
+    delay(sequence[0]); 
+  }
+
+  virtual void getSpaceBetweenLetters() {
+    sequence [0] = UNITS_BETWEEN_LETTERS;
+
+    digitalWrite(LED_BUILTIN, LOW);    // turn the LED off by making the voltage LOW
+    delay(sequence[0]);
+  }
   
 };
 
@@ -317,13 +331,67 @@ void setup() {
 // the loop function runs over and over again forever
 void loop() {
 
-  int sequence;
-  if (msg[0] == 'H') {
-    morse -> getA(); 
+  int i;
+
+  for (i = 0; i < msg.length(); i = i + 1){
+    switch (msg[i]) {
+      case 'A': morse->getA();
+        break;
+      case 'B': morse->getB();
+        break;
+      case 'C': morse->getC();
+        break;
+      case 'D': morse->getD();
+        break;
+      case 'E': morse->getE();
+        break;
+      case 'F': morse->getF();
+        break;
+      case 'G': morse->getG();
+        break;
+      case 'H': morse->getH();
+        break;
+      case 'I': morse->getI();
+        break;
+      case 'J': morse->getJ();
+        break;
+      case 'K': morse->getK();
+        break;
+      case 'L': morse->getL();
+        break;
+      case 'M': morse->getM();
+        break;
+      case 'N': morse->getN();
+        break;
+      case 'O': morse->getO();
+        break;
+      case 'P': morse->getP();
+        break;
+      case 'Q': morse->getQ();
+        break;
+      case 'R': morse->getR();
+        break;
+      case 'S': morse->getS();
+        break;
+      case 'T': morse->getT();
+        break;
+      case 'U': morse->getU();
+        break;
+      case 'V': morse->getV();
+        break;
+      case 'W': morse->getW();
+        break;
+      case 'X': morse->getX();
+        break;
+      case 'Y': morse->getY();
+        break;
+      case 'Z': morse->getZ();
+        break;
+      case ' ': morse->getSpaceBetweenWords();
+      default:
+        Serial.println("Error");
+        Serial.print(msg[i]);
+    }
+    morse->getSpaceBetweenLetters();
   }
-  delay(10000);
-//  digitalWrite(LED_BUILTIN, HIGH);   // turn the LED on (HIGH is the voltage level)
-//  delay(1000);                       // wait for a second
-//  digitalWrite(LED_BUILTIN, LOW);    // turn the LED off by making the voltage LOW
-//  delay(1000);                       // wait for a second
 }
