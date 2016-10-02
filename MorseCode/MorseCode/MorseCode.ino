@@ -302,6 +302,148 @@ class Morse {
     makeItShine(7);
   }
 
+  virtual void getOne() {
+    sequence[0] = UNIT_DOT;
+    sequence[1] = UNIT_WITHIN_LETTERS;
+    sequence[2] = UNIT_DASH;
+    sequence[3] = UNIT_WITHIN_LETTERS;
+    sequence[4] = UNIT_DASH;
+    sequence[5] = UNIT_WITHIN_LETTERS;
+    sequence[6] = UNIT_DASH;
+    sequence[7] = UNIT_WITHIN_LETTERS;
+    sequence[8] = UNIT_DASH;
+
+    makeItShine(9);
+  }
+
+  virtual void getTwo() {
+    sequence[0] = UNIT_DOT;
+    sequence[1] = UNIT_WITHIN_LETTERS;
+    sequence[2] = UNIT_DOT;
+    sequence[3] = UNIT_WITHIN_LETTERS;
+    sequence[4] = UNIT_DASH;
+    sequence[5] = UNIT_WITHIN_LETTERS;
+    sequence[6] = UNIT_DASH;
+    sequence[7] = UNIT_WITHIN_LETTERS;
+    sequence[8] = UNIT_DASH;
+    
+
+    makeItShine(9);
+  }
+
+  virtual void getThree() {
+    sequence[0] = UNIT_DOT;
+    sequence[1] = UNIT_WITHIN_LETTERS;
+    sequence[2] = UNIT_DOT;
+    sequence[3] = UNIT_WITHIN_LETTERS;
+    sequence[4] = UNIT_DOT;
+    sequence[5] = UNIT_WITHIN_LETTERS;
+    sequence[6] = UNIT_DASH;
+    sequence[7] = UNIT_WITHIN_LETTERS;
+    sequence[8] = UNIT_DASH;
+
+    makeItShine(9);
+  }
+
+  virtual void getFour() {
+    sequence[0] = UNIT_DOT;
+    sequence[1] = UNIT_WITHIN_LETTERS;
+    sequence[2] = UNIT_DOT;
+    sequence[3] = UNIT_WITHIN_LETTERS;
+    sequence[4] = UNIT_DOT;
+    sequence[5] = UNIT_WITHIN_LETTERS;
+    sequence[6] = UNIT_DOT;
+    sequence[7] = UNIT_WITHIN_LETTERS;
+    sequence[8] = UNIT_DASH;
+    
+
+    makeItShine(9);
+  }
+
+  virtual void getFive() {
+    sequence[0] = UNIT_DOT;
+    sequence[1] = UNIT_WITHIN_LETTERS;
+    sequence[2] = UNIT_DOT;
+    sequence[3] = UNIT_WITHIN_LETTERS;
+    sequence[4] = UNIT_DOT;
+    sequence[5] = UNIT_WITHIN_LETTERS;
+    sequence[6] = UNIT_DOT;
+    sequence[7] = UNIT_WITHIN_LETTERS;
+    sequence[8] = UNIT_DOT;
+    
+    makeItShine(9);
+  }
+
+  virtual void getSix() {
+    sequence[0] = UNIT_DASH;
+    sequence[1] = UNIT_WITHIN_LETTERS;
+    sequence[2] = UNIT_DOT;
+    sequence[3] = UNIT_WITHIN_LETTERS;
+    sequence[4] = UNIT_DOT;
+    sequence[5] = UNIT_WITHIN_LETTERS;
+    sequence[6] = UNIT_DOT;
+    sequence[7] = UNIT_WITHIN_LETTERS;
+    sequence[8] = UNIT_DOT;
+    
+    makeItShine(9);
+  }
+
+  virtual void getSeven() {
+    sequence[0] = UNIT_DASH;
+    sequence[1] = UNIT_WITHIN_LETTERS;
+    sequence[2] = UNIT_DASH;
+    sequence[3] = UNIT_WITHIN_LETTERS;
+    sequence[4] = UNIT_DOT;
+    sequence[5] = UNIT_WITHIN_LETTERS;
+    sequence[6] = UNIT_DOT;
+    sequence[7] = UNIT_WITHIN_LETTERS;
+    sequence[8] = UNIT_DOT;
+
+    makeItShine(9);
+  }
+
+  virtual void getEight() {
+    sequence[0] = UNIT_DASH;
+    sequence[1] = UNIT_WITHIN_LETTERS;
+    sequence[2] = UNIT_DASH;
+    sequence[3] = UNIT_WITHIN_LETTERS;
+    sequence[4] = UNIT_DASH;
+    sequence[5] = UNIT_WITHIN_LETTERS;
+    sequence[6] = UNIT_DOT;
+    sequence[7] = UNIT_WITHIN_LETTERS;
+    sequence[8] = UNIT_DOT;
+
+    makeItShine(9);
+  }
+
+  virtual void getNine() {
+    sequence[0] = UNIT_DASH;
+    sequence[1] = UNIT_WITHIN_LETTERS;
+    sequence[2] = UNIT_DASH;
+    sequence[3] = UNIT_WITHIN_LETTERS;
+    sequence[4] = UNIT_DASH;
+    sequence[5] = UNIT_WITHIN_LETTERS;
+    sequence[6] = UNIT_DASH;
+    sequence[7] = UNIT_WITHIN_LETTERS;
+    sequence[8] = UNIT_DOT;
+
+    makeItShine(9);
+  }
+
+  virtual void getZero() {
+    sequence[0] = UNIT_DASH;
+    sequence[1] = UNIT_WITHIN_LETTERS;
+    sequence[2] = UNIT_DASH;
+    sequence[3] = UNIT_WITHIN_LETTERS;
+    sequence[4] = UNIT_DASH;
+    sequence[5] = UNIT_WITHIN_LETTERS;
+    sequence[6] = UNIT_DASH;
+    sequence[7] = UNIT_WITHIN_LETTERS;
+    sequence[8] = UNIT_DASH;
+
+    makeItShine(9);
+  }
+
   virtual void getSpaceBetweenWords() {
     sequence[0] = UNITS_BETWEEN_WORDS;
 
@@ -330,11 +472,30 @@ void setup() {
 
 // the loop function runs over and over again forever
 void loop() {
-
   int i;
 
   for (i = 0; i < msg.length(); i = i + 1){
     switch (msg[i]) {
+      case '0': morse->getZero();
+        break;
+      case '1': morse->getOne();
+        break;
+      case '2': morse->getTwo();
+        break;
+      case '3': morse->getThree();
+        break;
+      case '4': morse->getFour();
+        break;
+      case '5': morse->getFive();
+        break;
+      case '6': morse->getSix();
+        break;
+      case '7': morse->getSeven();
+        break;
+      case '8': morse->getEight();
+        break;
+      case '9': morse->getNine();
+        break;
       case 'A': morse->getA();
         break;
       case 'B': morse->getB();
