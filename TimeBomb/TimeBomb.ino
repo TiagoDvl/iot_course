@@ -1,24 +1,6 @@
-/*
-  Blink
-  Turns on an LED on for one second, then off for one second, repeatedly.
-
-  Most Arduinos have an on-board LED you can control. On the UNO, MEGA and ZERO 
-  it is attached to digital pin 13, on MKR1000 on pin 6. LED_BUILTIN takes care 
-  of use the correct LED pin whatever is the board used.
-  If you want to know what pin the on-board LED is connected to on your Arduino model, check
-  the Technical Specs of your board  at https://www.arduino.cc/en/Main/Products
-  
-  This example code is in the public domain.
-
-  modified 8 May 2014
-  by Scott Fitzgerald
-  
-  modified 2 Sep 2016
-  by Arturo Guadalupi
-*/
-
-int bomb_initial_time = 500;
-int DECAY_FACTOR = 20;
+int MAX_BOMB_TIME = 500;
+int MIN_BOMB_TIME = 0;
+int FACTOR = 20;
 
 // the setup function runs once when you press reset or power the board
 void setup() {
@@ -28,13 +10,16 @@ void setup() {
 
 // the loop function runs over and over again forever
 void loop() {
+  int currentTime = MAX_BOMB_TIME;
+  
   digitalWrite(LED_BUILTIN, HIGH);   // turn the LED on (HIGH is the voltage level)
-  delay(bomb_initial_time);                       // wait for a second
+  delay(currentTime);                // wait for a second
   digitalWrite(LED_BUILTIN, LOW);    // turn the LED off by making the voltage LOW
-  delay(bomb_initial_time);
-  bomb_initial_time = bomb_initial_time - DECAY_FACTOR;
+  delay(currentTime);
 
-  if (bomb_initial_time <= DECAY_FACTOR) {
-    bomb_initial_time = 500;
+  if (currentTime <= MAX_BOMB_TIME) {
+    currentTime = currentTime + FACTOR;
+  } else if (currentTime >= MIN_BOMB_TIME) {
+    currentTime = currentTime - FACTOR;
   }
 }
