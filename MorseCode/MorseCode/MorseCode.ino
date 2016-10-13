@@ -10,6 +10,10 @@ int UNIT_WITHIN_LETTERS = BASIC_TIME_UNIT;
 int UNITS_BETWEEN_LETTERS = BASIC_TIME_UNIT * 3;
 int UNITS_BETWEEN_WORDS = BASIC_TIME_UNIT *7;
 
+volatile char* pb = (char*) 0x25;
+volatile char* ddr = (char*) 0x24;
+volatile char* pin = (char*) 0x23;
+
 class Morse {
   // Got 100 just because I need a size to declare;
   public : int sequence[100]; 
@@ -18,13 +22,13 @@ class Morse {
     int i;
     for (i = 0; i < size; i = i + 1) {
       if ((i % 2) == 0) {
-        digitalWrite(LED_BUILTIN, HIGH);   // turn the LED on (HIGH is the voltage level)
+        *pb |= (1<<5);   // turn the LED on (HIGH is the voltage level)
         delay(sequence[i]);
         Serial.print("HIGH");
         Serial.print(i);
         Serial.println(" ");
       } else {
-        digitalWrite(LED_BUILTIN, LOW);    // turn the LED off by making the voltage LOW
+        *pb &= ~(1<<5);    // turn the LED off by making the voltage LOW
         delay(sequence[i]);
         Serial.print("LOW");
         Serial.print(i);
@@ -447,112 +451,118 @@ class Morse {
   virtual void getSpaceBetweenWords() {
     sequence[0] = UNITS_BETWEEN_WORDS;
 
-    digitalWrite(LED_BUILTIN, LOW);    // turn the LED off by making the voltage LOW
+    *pb &= ~(1<<5);    // turn the LED off by making the voltage LOW
     delay(sequence[0]); 
   }
 
   virtual void getSpaceBetweenLetters() {
     sequence [0] = UNITS_BETWEEN_LETTERS;
 
-    digitalWrite(LED_BUILTIN, LOW);    // turn the LED off by making the voltage LOW
+    *pb &= ~(1<<5);    // turn the LED off by making the voltage LOW
     delay(sequence[0]);
   }
   
 };
 
 Morse *morse;
+bool read_value;
 
 // the setup function runs once when you press reset or power the board
 void setup() {
   // initialize digital pin LED_BUILTIN as an output.
   morse = new Morse();
   Serial.begin(9600);
-  pinMode(LED_BUILTIN, OUTPUT);
+//  pinMode(LED_BUILTIN, OUTPUT);
+
+  *ddr |= (1<<5); // Output
+  *ddr &= (1<<0); // Input
 }
 
 // the loop function runs over and over again forever
 void loop() {
+  read_value = *pin & /* Entender pq isso me retorna 0 e 1) */(1<<0);
   int i;
-
-  for (i = 0; i < msg.length(); i = i + 1){
-    switch (msg[i]) {
-      case '0': morse->getZero();
-        break;
-      case '1': morse->getOne();
-        break;
-      case '2': morse->getTwo();
-        break;
-      case '3': morse->getThree();
-        break;
-      case '4': morse->getFour();
-        break;
-      case '5': morse->getFive();
-        break;
-      case '6': morse->getSix();
-        break;
-      case '7': morse->getSeven();
-        break;
-      case '8': morse->getEight();
-        break;
-      case '9': morse->getNine();
-        break;
-      case 'A': morse->getA();
-        break;
-      case 'B': morse->getB();
-        break;
-      case 'C': morse->getC();
-        break;
-      case 'D': morse->getD();
-        break;
-      case 'E': morse->getE();
-        break;
-      case 'F': morse->getF();
-        break;
-      case 'G': morse->getG();
-        break;
-      case 'H': morse->getH();
-        break;
-      case 'I': morse->getI();
-        break;
-      case 'J': morse->getJ();
-        break;
-      case 'K': morse->getK();
-        break;
-      case 'L': morse->getL();
-        break;
-      case 'M': morse->getM();
-        break;
-      case 'N': morse->getN();
-        break;
-      case 'O': morse->getO();
-        break;
-      case 'P': morse->getP();
-        break;
-      case 'Q': morse->getQ();
-        break;
-      case 'R': morse->getR();
-        break;
-      case 'S': morse->getS();
-        break;
-      case 'T': morse->getT();
-        break;
-      case 'U': morse->getU();
-        break;
-      case 'V': morse->getV();
-        break;
-      case 'W': morse->getW();
-        break;
-      case 'X': morse->getX();
-        break;
-      case 'Y': morse->getY();
-        break;
-      case 'Z': morse->getZ();
-        break;
-      case ' ': morse->getSpaceBetweenWords();
-      default:
-        Serial.println("Error");
-        Serial.print(msg[i]);
+  if (read_value) {
+    for (i = 0; i < msg.length(); i = i + 1){
+      switch (msg[i]) {
+        case '0': morse->getZero();
+          break;
+        case '1': morse->getOne();
+          break;
+        case '2': morse->getTwo();
+          break;
+        case '3': morse->getThree();
+          break;
+        case '4': morse->getFour();
+          break;
+        case '5': morse->getFive();
+          break;
+        case '6': morse->getSix();
+          break;
+        case '7': morse->getSeven();
+          break;
+        case '8': morse->getEight();
+          break;
+        case '9': morse->getNine();
+          break;
+        case 'A': morse->getA();
+          break;
+        case 'B': morse->getB();
+          break;
+        case 'C': morse->getC();
+          break;
+        case 'D': morse->getD();
+          break;
+        case 'E': morse->getE();
+          break;
+        case 'F': morse->getF();
+          break;
+        case 'G': morse->getG();
+          break;
+        case 'H': morse->getH();
+          break;
+        case 'I': morse->getI();
+          break;
+        case 'J': morse->getJ();
+          break;
+        case 'K': morse->getK();
+          break;
+        case 'L': morse->getL();
+          break;
+        case 'M': morse->getM();
+          break;
+        case 'N': morse->getN();
+          break;
+        case 'O': morse->getO();
+          break;
+        case 'P': morse->getP();
+          break;
+        case 'Q': morse->getQ();
+          break;
+        case 'R': morse->getR();
+          break;
+        case 'S': morse->getS();
+          break;
+        case 'T': morse->getT();
+          break;
+        case 'U': morse->getU();
+          break;
+        case 'V': morse->getV();
+          break;
+        case 'W': morse->getW();
+          break;
+        case 'X': morse->getX();
+          break;
+        case 'Y': morse->getY();
+          break;
+        case 'Z': morse->getZ();
+          break;
+        case ' ': morse->getSpaceBetweenWords();
+        default:
+          Serial.println("Error");
+          Serial.print(msg[i]);
+      }
+      morse->getSpaceBetweenLetters();
     }
-    morse->getSpaceBetweenLetters();
   }
 }
