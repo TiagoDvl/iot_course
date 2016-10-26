@@ -2,7 +2,8 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <avr/io.h>
-#include <avr/interrupt.h>    // Needed to use interrupts    
+#include <avr/interrupt.h>    // Needed to use interrupts  
+#include <util/delay.h>
 #include "uart.h"
 
 volatile char* pb = (char*) 0x25;
@@ -14,6 +15,12 @@ bool isLedUp;
 
 void setupPreScaler() {
     int r = rand() % 4;
+    
+    // Gambs? :(
+    if(r == 0) {
+      r++;
+    }
+    
     printf("Random Number: %d", r);
     printf("\n");
     
@@ -42,6 +49,10 @@ void turnTimeInterrupt(bool interruptState) {
     
 }
 
+long getCyclesInMs(long cycles) {
+  return (cycles*1000) / 15625;
+}
+
 bool isLEDOn() {
     return *pin & (1<<5);
 }
@@ -66,7 +77,7 @@ int main(void) {
     turnTimeInterrupt(true);
     
     
-    *pb &= ~(1<<5); // Desligando o LED?
+    turnLED(false);
     
     
     sei();                     // turn on interrupts
@@ -89,13 +100,17 @@ ISR (PCINT0_vect) {
         if (isGameStarted) {
             if (isLEDOn() && ((int) TCNT1 > 0)) {
                 turnLED(false);
-                printf("Pressed in: %d time", (int) TCNT1);
+                printf("Reaction time = %ld ms", getCyclesInMs((long)TCNT1));
                 printf("\n");
+		setupPreScaler();
+		turnTimeInterrupt(true);
             } else {
-                turnTimeInterrupt(true);
+		printf("Too Soon! Game Over!");
+		printf("\n");
             }
         } 
     }
+    _delay_ms(30);
 }
 
 ISR(TIMER1_COMPA_vect) {   
