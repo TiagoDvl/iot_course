@@ -18,7 +18,7 @@ void setupPreScaler() {
     
     // Gambs? :(
     if(r == 0) {
-      r++;
+        r++;
     }
     
     printf("Random Number: %d", r);
@@ -50,7 +50,7 @@ void turnTimeInterrupt(bool interruptState) {
 }
 
 long getCyclesInMs(long cycles) {
-  return (cycles*1000) / 15625;
+    return (cycles*1000) / 15625;
 }
 
 bool isLEDOn() {
@@ -66,19 +66,19 @@ int main(void) {
     printf("\n");
     
     *ddr |= (1<<5); // Preparando ele pra output
-    DDRB &= ~(1 << DDB0);         // Clear the PB0 pin
-    // PB0 (PCINT0 pin) is now an input
-    PORTB |= (1 << PORTB0);        // turn On the Pull-up
-    // PB0 is now an input with pull-up enabled
+    DDRD &= ~(1 << DDD2); // PD2 (PCINT0 pin) is now an input 
+    PORTD |= (1 << PORTD2); // PD2 is now with pull-up enabled 
+    
+    //???
+    EICRA &= ~(1 << ISC00); // set INT0 to trigger on
+    EICRA |= (1 << ISC01); // FALLING edge (ISC0 = 01)
+    EIMSK |= (1 << INT0); // Allow INT0 interrupts 
     
     PCICR |= (1 << PCIE0);     // set PCIE0 to enable PCMSK0 scan
     PCMSK0 |= (1 << PCINT0);   // set PCINT0 to trigger an interrupt on state change 
     
     turnTimeInterrupt(true);
-    
-    
     turnLED(false);
-    
     
     sei();                     // turn on interrupts
     
@@ -87,30 +87,29 @@ int main(void) {
     }
 }
 
-ISR (PCINT0_vect) {
-    if( (PINB & (1 << PINB0)) == 1 ) {
-        if (!isGameStarted) {
-            isGameStarted = true;
-            printf("Game Started! Good Luck. ;)");
+ISR (INT0_vect) {
+    if (!isGameStarted) {
+        isGameStarted = true;
+        printf("Game Started! Good Luck. ;)");
+        printf("\n");
+        setupPreScaler();
+        return;
+    }
+    
+    if (isGameStarted) {
+        if (isLEDOn() && ((int) TCNT1 > 0)) {
+            turnLED(false);
+            printf("Reaction time = %ld ms", getCyclesInMs((long)TCNT1));
             printf("\n");
             setupPreScaler();
-            return;
+            turnTimeInterrupt(true);
+        } else {
+            printf("Too Soon! Game Over!");
+            printf("\n");
+            turnLED(false);
+            isGameStarted = false;
         }
-        
-        if (isGameStarted) {
-            if (isLEDOn() && ((int) TCNT1 > 0)) {
-                turnLED(false);
-                printf("Reaction time = %ld ms", getCyclesInMs((long)TCNT1));
-                printf("\n");
-		setupPreScaler();
-		turnTimeInterrupt(true);
-            } else {
-		printf("Too Soon! Game Over!");
-		printf("\n");
-            }
-        } 
-    }
-    _delay_ms(30);
+    } 
 }
 
 ISR(TIMER1_COMPA_vect) {   
