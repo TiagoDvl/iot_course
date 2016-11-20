@@ -1,0 +1,17 @@
+/************************************************************************
+
+	Author: Tiago Dávila dos Santos
+	Course: Internet das coisas: Tecnologias e Projetos (INF-741)
+
+ ***********************************************************************/
+
+Install Instructions:
+
+1 - Your Arduino must be connected to your computer. 
+	1.1 - Check in which port it is mapped on your computer.
+2 - Export environment variables to where your arduino and avr are located.
+3 - Navigate to coursework-1 folder and run compile.sh script.
+	3.1 - If it does not work that way, please, make sure that files are located
+		properly just like script requires.
+4 - Wait untill instalation is done on your arduino.
+5 - Play! :)

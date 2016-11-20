@@ -13,7 +13,7 @@ volatile char* pin = (char*) 0x23;
 bool isGameStarted;
 bool isLedUp;
 bool isWaitingTime;
-long isRetarded;
+long isSlow;
 
 long milliseconds = 0;
 long beforeReaction = 0;
@@ -34,6 +34,14 @@ void turnLED(bool ledState) {
   }
 }
 
+void getMillis() {
+    return milliseconds;
+}
+
+void getMicro() {
+    return getMilis() * 1000 + TCNT0 * 4;
+}
+
 void turnTimeInterrupt(bool interruptState) {
   if (interruptState) {
     TIMSK0 |= (1 << OCIE0A);
@@ -52,7 +60,7 @@ bool isLEDOn() {
 }
 
 void randomizeLED() {
-  isRetarded = 0;
+  isSlow = 0;
   turnLED(false);
   
   srand(milliseconds);
@@ -116,7 +124,7 @@ ISR (INT0_vect) {
   
   if (!isGameStarted) {
     isGameStarted = true;
-    isRetarded = 0;
+    isSlow = 0;
     printf("Game Started! Good Luck. ;)\n");
     randomizeLED();
     return;
@@ -147,8 +155,8 @@ ISR(TIMER1_COMPA_vect) {
 
 ISR(TIMER0_COMPA_vect) {
   milliseconds ++;
-  isRetarded ++;
-  if (isGameStarted && isRetarded == 500) {
+  isSlow ++;
+  if (isGameStarted && isSlow == 500) {
       printf("So Slow! Game Over!\n");
       turnLED(false);
       isWrongTime = true;
