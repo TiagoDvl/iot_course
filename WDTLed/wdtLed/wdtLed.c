@@ -1,4 +1,11 @@
-#define F_CPU 16000000UL 
+#define F_CPU 16000000UL
+
+#define IDLE_MODE 0
+#define POWER_DOWN_MODE 1
+#define POWER_SAVE_MODE 2
+#define STANDBY_MODE 3
+#define EXT_STANDBY_MODE 4
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
@@ -10,66 +17,39 @@
 #include <util/delay.h>
 #include "uart.h"
 
-volatile unsigned long millis;
+volatile char* pb = (char*) 0x25;
+volatile char* ddr = (char*) 0x24;
+
 const int BOUNCE_THRESHOLD = 150;  // ms
 
-long hard_button_pin2_press;
-long button_pin2_press;
+long hard_button_pin2_press = 0;
+long button_pin2_press = 0;
+volatile long tot_overflow = 0;
+volatile long beginingOfProcess = 0;
+volatile long upTime = 0;
+long momentOfAwake = 0;
 
-void enterSleep(void)
-{
-  set_sleep_mode(SLEEP_MODE_PWR_SAVE);   /* EDIT: could also use SLEEP_MODE_PWR_DOWN for lowest power consumption. */
-  sleep_enable();
-
-  /* Now enter sleep mode. */
-  sleep_mode();
-
-  /* The program will continue from here after the WDT timeout*/
-  sleep_disable(); /* First thing to do is disable sleep. */
-
-  /* Re-enable the peripherals. */
-  power_all_enable();
+long getMillis() {
+    return (tot_overflow * 16.32) + (TCNT2 * 0.064);
 }
 
-/*
-void setSleepMode(char mode) {
-  switch (mode) {
-    case "IDLE_MODE":
-      SMCR &= ~(1 << SM0);
-      SMCR &= ~(1 << SM1);
-      SMCR &= ~(1 << SM2);
-      break;
-    case "POWER_DOWN_MODE":
-      SMCR &= ~(1 << SM0);
-      SMCR |= (1 << SM1);
-      break;
-    case "POWER_SAVE_MODE":
-      SMCR |= (1 << SM1) | (1 << SM0);
-      break;
-    case "STANDBY_MODE":
-      SMCR &= ~(1 << SM0);
-      SMCR |= (1 << SM2) | (1 << SM1);
-      break;
-    case "EXT_STANDBY_MODE":
-      SMCR |= (1 << SM2) | (1 << SM1) | (1 << SM0);
-      break;
+void turnLED(bool ledState) {
+  if (ledState) {
+    *pb |= (1<<5);  // Ligando o LED
+  } else {
+    *pb &= ~(1<<5); // Desligando o LED
   }
 }
-*/
+
+void enterSleep() {
+  set_sleep_mode(POWER_SAVE_MODE);   /* EDIT: could also use SLEEP_MODE_PWR_DOWN for lowest power consumption. */
+  sleep_cpu();
+}
 
 void watchdogSetup(void) {
   cli();
   wdt_reset();
-  /*
-    WDTCSR configuration:
-    WDIE = 1: Interrupt Enable
-    WDE = 1 :Reset Enable
-    See table for time-out variations:
-    WDP3 = 0 :For 1000ms Time-out
-    WDP2 = 1 :For 1000ms Time-out
-    WDP1 = 1 :For 1000ms Time-out
-    WDP0 = 0 :For 1000ms Time-out
-  */
+  
   // Enter Watchdog Configuration mode:
   WDTCSR |= (1 << WDCE) | (1 << WDE);
 
@@ -81,63 +61,68 @@ void watchdogSetup(void) {
 
   /* Enable the WD interrupt (note no reset). */
   //WDTCSR |= _BV(WDIE);
-
-  sei();
-}
-
-/* 
- * This method is responsible to configure all pin2 registers
- * also initialize some variables to implement debouncing
- */
-void button_pin2_setup(void) {
-    // set button as input
-    DDRD &= ~(1 << DDD2);
-
-    // allow interrupts
-    EIMSK = (1 << INT0);
-
-    // request falling edge changes
-    EICRA &= ~(1 << ISC00);
-    EICRA |= (1 << ISC01);
-
-    button_pin2_press = 0;
-    hard_button_pin2_press = 0;
 }
 
 /*
- * This method is responsible to create a timer interruption for
- * each millisecond configured by prescaler. This will be used to count
- * time for some application responsibilities.
- */
-void timer0_setup() {
-    // set mode to "interval"
-    TCCR0A |= (1 << WGM01);
-    // enable ISR(COMPA)
-    TIMSK0 |= (1 << OCIE0A);
-    // set initial value
-    TCNT0 = 0;
-    // set interval count
-    OCR0A = 250;
-    // set prescaler to /64
-    TCCR0B |= (1 << CS01) | (1 << CS00);
+   This method is responsible to configure all pin2 registers
+   also initialize some variables to implement debouncing
+*/
+void button_pin2_setup(void) {
+  // set button as input
+  DDRD &= ~(1 << DDD2);
 
-    millis = 0;
+  // allow interrupts
+  EIMSK = (1 << INT0);
+
+  // request falling edge changes
+  EICRA &= ~(1 << ISC00);
+  EICRA |= (1 << ISC01);
+
+  button_pin2_press = 0;
+  hard_button_pin2_press = 0;
+}
+
+/*
+   This method is responsible to create a timer interruption for
+   each millisecond configured by prescaler. This will be used to count
+   time for some application responsibilities.
+*/
+void timer2_init() {
+  // set up timer with prescaler = 1024.
+  TCCR2B |= (1 << CS22) | (1 << CS21) | (1 << CS20);
+
+  // initialize counter
+  TCNT2 = 0;
+
+  // enable overflow interrupt
+  TIMSK2 |= (1 << TOIE2);
+  // initialize overflow counter variable
+  tot_overflow = 0;
 }
 
 int main(void) {
-  watchdogSetup();
+  *ddr |= (1<<5); // Preparando LED pra output
+  //watchdogSetup();
   button_pin2_setup();
-  timer0_setup();
+  timer2_init();
   uart_init();
   stdout = &uart_output;
   stdin  = &uart_input;
 
-  printf("Hajimeru3\n");
+  printf("This is the Start\n");
+  set_sleep_mode(POWER_SAVE_MODE);
+  sei();
 
   while (1) {
-    _delay_ms(100);
+    turnLED(false);
+    long now = getMillis();
+    upTime = upTime + (now - momentOfAwake);
+    printf("Active Time: %ld\n", (upTime*100)/getMillis());
+//     printf ("Full time: %ld\n", now);
     enterSleep();
   }
+  
+  return 0;
 }
 
 // Interruption for WatchDogs.
@@ -147,20 +132,23 @@ ISR(WDT_vect) {
 
 // Interruption for Button.
 ISR(INT0_vect) {
-    //unsigned long now = timer0_millis();
-    unsigned long now = 0;
-    if (now - hard_button_pin2_press >= BOUNCE_THRESHOLD) {
-        button_pin2_press = now;
-    }
-
+  
+  unsigned long now = getMillis();
+  
+  if (now - hard_button_pin2_press >= BOUNCE_THRESHOLD) {
     hard_button_pin2_press = now;
-    printf("PushButton with time: %d\n ", millis);
+  } else {
+      return;
+  }
+  
+  beginingOfProcess = now;
+  turnLED(true);
+  printf("Time in milliseconds since boot: %ld\n ", beginingOfProcess);
 }
 
-// Interruption for Timer.
-ISR(TIMER0_COMPA_vect) { 
-    millis++;
-    if (millis % 1000 == 0) {
-        printf ("%d", millis);
-    }
+// Interruption for Timer2.
+ISR(TIMER2_OVF_vect) {
+  // keep a track of number of overflows
+  momentOfAwake = getMillis();
+  tot_overflow ++;
 }
