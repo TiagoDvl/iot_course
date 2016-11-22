@@ -24,10 +24,10 @@ const int BOUNCE_THRESHOLD = 150;  // ms
 
 long hard_button_pin2_press = 0;
 long button_pin2_press = 0;
-long tot_overflow = 0;
-long startSleepStime = 0;
-long awakeTime = 0;
-bool shouldWork = true;
+volatile long tot_overflow = 0;
+volatile long beginingOfProcess = 0;
+volatile long upTime = 0;
+long momentOfAwake = 0;
 
 long getMillis() {
   return (tot_overflow * 16.32) + (TCNT2 * 0.064);
@@ -114,29 +114,18 @@ int main(void) {
   set_sleep_mode(POWER_SAVE_MODE);
   sei();
 
-  long last_awake_time = 0;
-  
   while (1) {
-    printf("awakeTime: %ld | last: %ld: \n", awakeTime, last_awake_time);
-    if (awakeTime > last_awake_time) {
-      last_awake_time = awakeTime;
-      printf("CLICK\n");
-      turnLED(false);
-      long now = getMillis();
-      printf("now: %ld | ", now);
-      printf("awakeTime: %ld | ", awakeTime);
-      printf("startSleepStime: %ld | ", startSleepStime);
-      long totalSleepTime = awakeTime - startSleepStime;
-      printf("totalSleepTime: %ld | ", totalSleepTime);
-      long activeTime = now - totalSleepTime;
-      printf("activeTime: %ld | ", activeTime);
-      printf("Duty Cycle: %ld\n", ((activeTime*100)/now));
-
-      startSleepStime = getMillis();
-      enterSleep();
+    turnLED(false);
+    long now = getMillis();
+    upTime = upTime + (now - momentOfAwake);
+    if (upTime < 100) {
+      printf("Active Time: %ld\n", (upTime*100)/getMillis());
     }
+
+    //     printf ("Full time: %ld\n", now);
+    enterSleep();
   }
-  
+
   return 0;
 }
 
@@ -147,21 +136,25 @@ ISR(WDT_vect) {
 
 // Interruption for Button.
 ISR(INT0_vect) {
-  unsigned long now = getMillis();
-  if (now - hard_button_pin2_press >= BOUNCE_THRESHOLD) {
-    awakeTime = now;
-  } 
 
-  printf("awakeTime: %ld\n", awakeTime);
-  hard_button_pin2_press = now;
+  unsigned long now = getMillis();
+
+  if (now - hard_button_pin2_press >= BOUNCE_THRESHOLD) {
+    hard_button_pin2_press = now;
+  } 
+  else {
+    return;
+  }
+
+  beginingOfProcess = now;
   turnLED(true);
+  printf("Time in milliseconds since boot: %ld\n ", beginingOfProcess);
 }
 
 // Interruption for Timer2.
 ISR(TIMER2_OVF_vect) {
   // keep a track of number of overflows
+  momentOfAwake = getMillis();
   tot_overflow ++;
 }
-
-
 
