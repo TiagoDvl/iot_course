@@ -20,14 +20,18 @@
 volatile char* pb = (char*) 0x25;
 volatile char* ddr = (char*) 0x24;
 
-const int BOUNCE_THRESHOLD = 150;  // ms
+const int BOUNCE_THRESHOLD = 200;  // ms
 
 long hard_button_pin2_press = 0;
 long button_pin2_press = 0;
 long tot_overflow = 0;
 long startSleepStime = 0;
-long awakeTime = 0;
+long awakeTime = 1;
 bool shouldWork = true;
+
+long now;
+long totalSleepTime;
+long activeTime;
 
 long getMillis() {
   return (tot_overflow * 16.32) + (TCNT2 * 0.064);
@@ -117,24 +121,26 @@ int main(void) {
   long last_awake_time = 0;
   
   while (1) {
-    printf("awakeTime: %ld | last: %ld: \n", awakeTime, last_awake_time);
+//     printf("awakeTime: %ld | last: %ld: \n", awakeTime, last_awake_time);
     if (awakeTime > last_awake_time) {
       last_awake_time = awakeTime;
-      printf("CLICK\n");
       turnLED(false);
-      long now = getMillis();
-      printf("now: %ld | ", now);
-      printf("awakeTime: %ld | ", awakeTime);
-      printf("startSleepStime: %ld | ", startSleepStime);
-      long totalSleepTime = awakeTime - startSleepStime;
-      printf("totalSleepTime: %ld | ", totalSleepTime);
-      long activeTime = now - totalSleepTime;
-      printf("activeTime: %ld | ", activeTime);
-      printf("Duty Cycle: %ld\n", ((activeTime*100)/now));
+      now = getMillis();
+//       printf("now: %ld | ", now);
+//       printf("awakeTime: %ld | ", awakeTime);
+//       printf("startSleepStime: %ld | ", startSleepStime);
+      totalSleepTime = awakeTime - startSleepStime;
+//       printf("totalSleepTime: %ld | ", totalSleepTime);
+      activeTime = activeTime + (16.32 - totalSleepTime);
+//       printf("activeTime: %ld | ", activeTime);
+      if (awakeTime != 1) {
+        printf("Duty Cycle: %ld%%\n", (((activeTime*100)/now)+100));
+      }
 
       startSleepStime = getMillis();
       enterSleep();
     }
+    _delay_ms(50);
   }
   
   return 0;
@@ -151,8 +157,7 @@ ISR(INT0_vect) {
   if (now - hard_button_pin2_press >= BOUNCE_THRESHOLD) {
     awakeTime = now;
   } 
-
-  printf("awakeTime: %ld\n", awakeTime);
+  
   hard_button_pin2_press = now;
   turnLED(true);
 }
